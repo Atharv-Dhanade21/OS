@@ -1,0 +1,94 @@
+#include <pthread.h>
+#include <semaphore.h>
+#include <stdio.h>
+#include <unistd.h>
+
+sem_t wrt;
+pthread_mutex_t mutex;
+int balance = 1000; // Initial balance
+int numreader = 0;
+int sync_mode = 1; // Default to synchronization mode
+
+void *deposit(void *dno) {
+    if (sync_mode) sem_wait(&wrt);
+    int amount = 200; // Example deposit amount
+    balance += amount;
+    printf("Depositor %d added %d. New balance: %d\n", *((int *)dno), amount, balance);
+    if (sync_mode) sem_post(&wrt);
+}
+
+void *withdraw(void *wno) {
+    if (sync_mode) sem_wait(&wrt);
+    int amount = 150; // Example withdrawal amount
+    if (balance >= amount) {
+        balance -= amount;
+        printf("Withdrawer %d withdrew %d. New balance: %d\n", *((int *)wno), amount, balance);
+    } else {
+        printf("Withdrawer %d tried to withdraw %d but insufficient funds. Balance: %d\n", *((int *)wno), amount, balance);
+    }
+    if (sync_mode) sem_post(&wrt);
+}
+
+void *check_balance(void *rno) {
+    if (sync_mode) {
+        pthread_mutex_lock(&mutex);
+        numreader++;
+        if (numreader == 1) {
+            sem_wait(&wrt);
+        }
+        pthread_mutex_unlock(&mutex);
+    }
+    
+    // Reading section
+    printf("Customer %d checked balance: %d\n", *((int *)rno), balance);
+    
+    if (sync_mode) {
+        pthread_mutex_lock(&mutex);
+        numreader--;
+        if (numreader == 0) {
+            sem_post(&wrt);
+        }
+        pthread_mutex_unlock(&mutex);
+    }
+}
+
+int main() {
+    int choice;
+    printf("Choose mode:\n1. With Synchronization\n2. Without Synchronization\n");
+    scanf("%d", &choice);
+    sync_mode = (choice == 1) ? 1 : 0;
+
+    pthread_t readers[10], depositors[5], withdrawers[5];
+    if (sync_mode) {
+        pthread_mutex_init(&mutex, NULL);
+        sem_init(&wrt, 0, 1);
+    }
+
+    int ids[10];
+    for (int i = 0; i < 10; i++) {
+        ids[i] = i + 1;
+    }
+
+    for (int i = 0; i < 10; i++) {
+        pthread_create(&readers[i], NULL, check_balance, &ids[i]);
+    }
+    for (int i = 0; i < 5; i++) {
+        pthread_create(&depositors[i], NULL, deposit, &ids[i]);
+        pthread_create(&withdrawers[i], NULL, withdraw, &ids[i]);
+    }
+
+    for (int i = 0; i < 10; i++) {
+        pthread_join(readers[i], NULL);
+    }
+    for (int i = 0; i < 5; i++) {
+        pthread_join(depositors[i], NULL);
+        pthread_join(withdrawers[i], NULL);
+    }
+
+    if (sync_mode) {
+        pthread_mutex_destroy(&mutex);
+        sem_destroy(&wrt);
+    }
+
+    return 0;
+}

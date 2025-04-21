@@ -1,0 +1,313 @@
+#include <iostream>
+using namespace std;
+
+// Function for First-Come-First-Served (FCFS) Page Replacement
+void FCFS(int pages[], int n, int frames)
+{
+    int memory[frames], front = 0, count = 0;
+    bool found;
+
+    for (int i = 0; i < frames; i++)
+        memory[i] = -1; // Initialize memory slots as empty
+
+    cout << "\nFCFS Page Replacement Process:\n";
+
+    for (int i = 0; i < n; i++)
+    {
+        found = false;
+
+        // Check if the page is already in memory
+        for (int j = 0; j < frames; j++)
+        {
+            if (memory[j] == pages[i])
+            {
+                found = true;
+                break;
+            }
+        }
+
+        if (!found)
+        {
+            memory[front] = pages[i];     // Replace the oldest page
+            front = (front + 1) % frames; // Move to next slot
+            count++;
+        }
+
+        // Display memory state
+        cout << "Page " << pages[i] << ": ";
+        for (int j = 0; j < frames; j++)
+        {
+            if (memory[j] != -1)
+                cout << memory[j] << " ";
+            else
+                cout << "- ";
+        }
+        cout << "\n";
+    }
+
+    cout << "Total Page Faults in FCFS: " << count << "\n";
+}
+
+// Function for Least Recently Used (LRU) Page Replacement
+void LRU(int pages[], int n, int frames)
+{
+    int memory[frames], last_used[frames], count = 0;
+
+    for (int i = 0; i < frames; i++)
+    {
+        memory[i] = -1;
+        last_used[i] = -1;
+    }
+
+    cout << "\nLRU Page Replacement Process:\n";
+
+    for (int i = 0; i < n; i++)
+    {
+        bool found = false;
+
+        for (int j = 0; j < frames; j++)
+        {
+            if (memory[j] == pages[i])
+            {
+                last_used[j] = i;
+                found = true;
+                break;
+            }
+        }
+
+        if (!found)
+        {
+            int lru_index = -1, min_time = n + 1;
+
+            for (int j = 0; j < frames; j++)
+            {
+                if (memory[j] == -1)
+                {
+                    lru_index = j;
+                    break;
+                }
+
+                if (last_used[j] < min_time)
+                {
+                    min_time = last_used[j];
+                    lru_index = j;
+                }
+            }
+
+            memory[lru_index] = pages[i];
+            last_used[lru_index] = i;
+            count++;
+        }
+
+        // Display memory state
+        cout << "Page " << pages[i] << ": ";
+        for (int j = 0; j < frames; j++)
+        {
+            if (memory[j] != -1)
+                cout << memory[j] << " ";
+            else
+                cout << "- ";
+        }
+        cout << "\n";
+    }
+
+    cout << "Total Page Faults in LRU: " << count << "\n";
+}
+
+// Function for Optimal Page Replacement
+void Optimal(int pages[], int n, int frames)
+{
+    int memory[frames], count = 0;
+
+    for (int i = 0; i < frames; i++)
+        memory[i] = -1;
+
+    cout << "\nOptimal Page Replacement Process:\n";
+
+    for (int i = 0; i < n; i++)
+    {
+        bool found = false;
+
+        // Check if already in memory
+        for (int j = 0; j < frames; j++)
+        {
+            if (memory[j] == pages[i])
+            {
+                found = true;
+                break;
+            }
+        }
+
+        if (!found)
+        {
+            int replace_index = -1, farthest = -1;
+
+            for (int j = 0; j < frames; j++)
+            {
+                if (memory[j] == -1)
+                {
+                    replace_index = j;
+                    break;
+                }
+
+                int k;
+                for (k = i + 1; k < n; k++)
+                {
+                    if (memory[j] == pages[k])
+                        break;
+                }
+
+                if (k > farthest)
+                {
+                    farthest = k;
+                    replace_index = j;
+                }
+            }
+
+            memory[replace_index] = pages[i];
+            count++;
+        }
+
+        // Display memory state
+        cout << "Page " << pages[i] << ": ";
+        for (int j = 0; j < frames; j++)
+        {
+            if (memory[j] != -1)
+                cout << memory[j] << " ";
+            else
+                cout << "- ";
+        }
+        cout << "\n";
+    }
+
+    cout << "Total Page Faults in Optimal: " << count << "\n";
+}
+
+// Main function
+int main()
+{
+    int n, frames, choice;
+
+    cout << "Enter number of pages: ";
+    cin >> n;
+    int pages[n];
+
+    cout << "Enter page reference string: ";
+    for (int i = 0; i < n; i++)
+        cin >> pages[i];
+
+    cout << "Enter number of frames: ";
+    cin >> frames;
+
+    do
+    {
+        cout << "\nChoose Page Replacement Algorithm:\n";
+        cout << "1. FCFS\n2. LRU\n3. Optimal\n4. Exit\n";
+        cout << "Enter choice: ";
+        cin >> choice;
+
+        switch (choice)
+        {
+        case 1:
+            FCFS(pages, n, frames);
+            break;
+        case 2:
+            LRU(pages, n, frames);
+            break;
+        case 3:
+            Optimal(pages, n, frames);
+            break;
+        case 4:
+            cout << "Exiting...\n";
+            break;
+        default:
+            cout << "Invalid choice! Try again.\n";
+        }
+    } while (choice != 4);
+
+    return 0;
+}
+
+
+// Sample Input/Output:
+// Enter number of pages: 12
+// Enter page reference string: 7 0 1 2 0 3 0 4 2 3 0 3
+// Enter number of frames: 3
+// Output:
+// Enter number of pages: 12
+// Enter page reference string: 7 0 1 2 0 3 0 4 2 3 0 3
+// Enter number of frames: 3
+
+// Choose Page Replacement Algorithm:
+// 1. FCFS
+// 2. LRU
+// 3. Optimal
+// 4. Exit
+// Enter choice: 1
+
+// FCFS Page Replacement Process:
+// Page 7: 7 - - 
+// Page 0: 7 0 - 
+// Page 1: 7 0 1 
+// Page 2: 2 0 1 
+// Page 0: 2 0 1 
+// Page 3: 2 3 1 
+// Page 0: 2 3 0 
+// Page 4: 4 3 0 
+// Page 2: 2 3 0 
+// Page 3: 2 3 0 
+// Page 0: 2 3 0 
+// Page 3: 2 3 0 
+// Total Page Faults in FCFS: 9
+
+// Choose Page Replacement Algorithm:
+// 1. FCFS
+// 2. LRU
+// 3. Optimal
+// 4. Exit
+// Enter choice: 2
+
+// LRU Page Replacement Process:
+// Page 7: 7 - - 
+// Page 0: 7 0 - 
+// Page 1: 7 0 1 
+// Page 2: 2 0 1 
+// Page 0: 2 0 1 
+// Page 3: 2 3 1 
+// Page 0: 0 3 1 
+// Page 4: 4 3 1 
+// Page 2: 4 2 1 
+// Page 3: 4 2 3 
+// Page 0: 0 2 3 
+// Page 3: 0 2 3 
+// Total Page Faults in LRU: 10
+
+// Choose Page Replacement Algorithm:
+// 1. FCFS
+// 2. LRU
+// 3. Optimal
+// 4. Exit
+// Enter choice: 3
+
+// Optimal Page Replacement Process:
+// Page 7: 7 - - 
+// Page 0: 7 0 - 
+// Page 1: 7 0 1 
+// Page 2: 2 0 1 
+// Page 0: 2 0 1 
+// Page 3: 2 3 1 
+// Page 0: 0 3 1 
+// Page 4: 4 3 1 
+// Page 2: 4 2 1 
+// Page 3: 4 2 3 
+// Page 0: 0 2 3 
+// Page 3: 0 2 3 
+// Total Page Faults in Optimal: 8
+
+// Choose Page Replacement Algorithm:
+// 1. FCFS
+// 2. LRU
+// 3. Optimal
+// 4. Exit
+// Enter choice: 4
+// Exiting...

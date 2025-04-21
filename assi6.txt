@@ -1,0 +1,258 @@
+#include <iostream>
+#include <vector>
+#include <limits>
+
+using namespace std;
+
+struct Block
+{
+    int id;
+    int size;
+};
+
+void firstFit(vector<Block> blocks, vector<int> processes)
+{
+    cout << "\nFirst Fit Allocation:" << endl;
+    cout << "Process No.\tProcess Size\tBlock No.\tFragmented Memory" << endl;
+
+    for (size_t i = 0; i < processes.size(); i++)
+    {
+        bool allocated = false;
+        for (auto &block : blocks)
+        {
+            if (block.size >= processes[i])
+            {
+                cout << i + 1 << "\t\t" << processes[i] << "\t\t" << block.id << "\t\t" << (block.size - processes[i]) << endl;
+                block.size -= processes[i];
+                allocated = true;
+                break;
+            }
+        }
+        if (!allocated)
+        {
+            cout << i + 1 << "\t\t" << processes[i] << "\t\tNot Allocated\t-" << endl;
+        }
+    }
+}
+
+void bestFit(vector<Block> blocks, vector<int> processes)
+{
+    cout << "\nBest Fit Allocation:" << endl;
+    cout << "Process No.\tProcess Size\tBlock No.\tFragmented Memory" << endl;
+
+    for (size_t i = 0; i < processes.size(); i++)
+    {
+        int bestIdx = -1;
+        for (size_t j = 0; j < blocks.size(); j++)
+        {
+            if (blocks[j].size >= processes[i])
+            {
+                if (bestIdx == -1 || blocks[j].size < blocks[bestIdx].size)
+                    bestIdx = j;
+            }
+        }
+        if (bestIdx != -1)
+        {
+            cout << i + 1 << "\t\t" << processes[i] << "\t\t" << blocks[bestIdx].id << "\t\t" << (blocks[bestIdx].size - processes[i]) << endl;
+            blocks[bestIdx].size -= processes[i];
+        }
+        else
+        {
+            cout << i + 1 << "\t\t" << processes[i] << "\t\tNot Allocated\t-" << endl;
+        }
+    }
+}
+
+void worstFit(vector<Block> blocks, vector<int> processes)
+{
+
+    cout << "\nWorst Fit Allocation:" << endl;
+    cout << "Process No.\tProcess Size\tBlock No.\tFragmented Memory" << endl;
+
+    for (size_t i = 0; i < processes.size(); i++)
+    {
+        int worstIdx = -1;
+        for (size_t j = 0; j < blocks.size(); j++)
+        {
+            if (blocks[j].size >= processes[i])
+            {
+                if (worstIdx == -1 || blocks[j].size > blocks[worstIdx].size)
+                    worstIdx = j;
+            }
+        }
+        if (worstIdx != -1)
+        {
+            cout << i + 1 << "\t\t" << processes[i] << "\t\t" << blocks[worstIdx].id << "\t\t" << (blocks[worstIdx].size - processes[i]) << endl;
+            blocks[worstIdx].size -= processes[i];
+        }
+        else
+        {
+            cout << i + 1 << "\t\t" << processes[i] << "\t\tNot Allocated\t-" << endl;
+        }
+    }
+}
+
+void nextFit(vector<Block> blocks, vector<int> processes)
+{
+    cout << "\nNext Fit Allocation:" << endl;
+    cout << "Process No.\tProcess Size\tBlock No.\tFragmented Memory" << endl;
+
+    size_t lastAllocatedIdx = 0;
+    for (size_t i = 0; i < processes.size(); i++)
+    {
+        bool allocated = false;
+        for (size_t j = 0; j < blocks.size(); j++)
+        {
+            size_t idx = (lastAllocatedIdx + j) % blocks.size();
+
+            if (blocks[idx].size >= processes[i])
+            {
+                cout << i + 1 << "\t\t" << processes[i] << "\t\t" << blocks[idx].id << "\t\t" << (blocks[idx].size - processes[i]) << endl;
+                blocks[idx].size -= processes[i];
+                lastAllocatedIdx = idx;
+                allocated = true;
+                break;
+            }
+        }
+        if (!allocated)
+        {
+            cout << i + 1 << "\t\t" << processes[i] << "\t\tNot Allocated\t-" << endl;
+        }
+    }
+}
+
+int main()
+{
+    int numBlocks, numProcesses, choice;
+
+    cout << "Enter number of memory blocks: ";
+    cin >> numBlocks;
+    vector<Block> blocks(numBlocks);
+    for (int i = 0; i < numBlocks; i++)
+    {
+        cout << "Enter size of block " << i + 1 << ": ";
+        cin >> blocks[i].size;
+        blocks[i].id = i + 1;
+    }
+
+    cout << "Enter number of processes: ";
+    cin >> numProcesses;
+    vector<int> processes(numProcesses);
+
+    for (int i = 0; i < numProcesses; i++)
+    {
+        cout << "Enter size of process " << i + 1 << ": ";
+        cin >> processes[i];
+    }
+
+    do
+    {
+        cout << "\nSelect Allocation Method:" << endl;
+        cout << "1. First Fit\n2. Best Fit\n3. Worst Fit\n4. Next Fit\n5. Exit\nEnter choice: ";
+        cin >> choice;
+
+        switch (choice)
+        {
+        case 1:
+            firstFit(blocks, processes);
+            break;
+        case 2:
+            bestFit(blocks, processes);
+            break;
+        case 3:
+            worstFit(blocks, processes);
+            break;
+        case 4:
+            nextFit(blocks, processes);
+            break;
+        case 5:
+            cout << "Exiting program..." << endl;
+            break;
+        default:
+            cout << "Invalid choice!" << endl;
+        }
+    } while (choice != 5);
+
+    return 0;
+}
+
+/*Enter number of memory blocks: 5
+Enter size of block 1: 100
+Enter size of block 2: 500
+Enter size of block 3: 200
+Enter size of block 4: 300
+Enter size of block 5: 600
+Enter number of processes: 4
+Enter size of process 1: 212
+Enter size of process 2: 417
+Enter size of process 3: 112
+Enter size of process 4: 426
+
+Select Allocation Method:
+1. First Fit
+2. Best Fit
+3. Worst Fit
+4. Next Fit
+5. Exit
+Enter choice: 1
+
+First Fit Allocation:
+Process No.	Process Size	Block No.	Fragmented Memory
+1		212		2		288
+2		417		5		183
+3		112		2		176
+4		426		Not Allocated	-
+
+Select Allocation Method:
+1. First Fit
+2. Best Fit
+3. Worst Fit
+4. Next Fit
+5. Exit
+Enter choice: 2
+
+Best Fit Allocation:
+Process No.	Process Size	Block No.	Fragmented Memory
+1		212		4		88
+2		417		2		83
+3		112		3		88
+4		426		5		174
+
+Select Allocation Method:
+1. First Fit
+2. Best Fit
+3. Worst Fit
+4. Next Fit
+5. Exit
+Enter choice: 3
+
+Worst Fit Allocation:
+Process No.	Process Size	Block No.	Fragmented Memory
+1		212		5		388
+2		417		2		83
+3		112		5		276
+4		426		Not Allocated	-
+
+Select Allocation Method:
+1. First Fit
+2. Best Fit
+3. Worst Fit
+4. Next Fit
+5. Exit
+Enter choice: 4
+
+Next Fit Allocation:
+Process No.	Process Size	Block No.	Fragmented Memory
+1		212		2		288
+2		417		5		183
+3		112		5		71
+4		426		Not Allocated	-
+
+Select Allocation Method:
+1. First Fit
+2. Best Fit
+3. Worst Fit
+4. Next Fit
+5. Exit
+Enter choice: 5
+Exiting program...*/

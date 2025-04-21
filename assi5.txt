@@ -1,0 +1,111 @@
+#include<iostream> 
+#include<vector> 
+using namespace std; 
+ 
+int P, R; 
+vector<vector<int>> need, maxm, allot; 
+vector<int> avail; 
+vector<int> safeSeq; 
+vector<bool> finish; 
+ 
+void findSafeSequences(vector<int> &work, vector<int> &sequence) { 
+    bool found = false; // to keep track of whether a safe sequence is found 
+    for (int p = 0; p < P; p++) { 
+        if (!finish[p]) { 
+            bool canProceed = true; 
+            for (int j = 0; j < R; j++) { 
+                if (need[p][j] > work[j]) { 
+                    canProceed = false; 
+                    break; 
+                } 
+            } 
+            if (canProceed) { 
+                for (int j = 0; j < R; j++){ 
+                    work[j] += allot[p][j]; 
+                } 
+                finish[p] = true; 
+                sequence.push_back(p); 
+                 
+                findSafeSequences(work, sequence); 
+                 
+                sequence.pop_back(); 
+                finish[p] = false; 
+                for (int j = 0; j < R; j++) 
+                    work[j] -= allot[p][j]; 
+                found = true; 
+            } 
+        } 
+    } 
+    if (!found && sequence.size() == P) { 
+        for (int i = 0; i < P; i++) 
+            cout<<"p" << sequence[i] << "-> "; 
+        cout << endl; 
+    } 
+} 
+ 
+int main() { 
+    cout << "Enter number of processes: "; 
+    cin >> P; 
+    cout << "Enter number of resource types: "; 
+    cin >> R; 
+     
+    avail.resize(R); 
+    maxm.resize(P, vector<int>(R)); 
+    allot.resize(P, vector<int>(R)); 
+    need.resize(P, vector<int>(R)); 
+    finish.resize(P, false); 
+     
+    cout << "Enter available resources: "; 
+    for (int i = 0; i < R; i++){ 
+        cin >> avail[i]; 
+    } 
+ 
+    cout << "Enter maximum resource matrix: \n"; 
+    for (int i = 0; i < P; i++){  
+        for (int j = 0; j < R; j++){  
+            cin >> maxm[i][j]; 
+        } 
+    } 
+ 
+    cout << "Enter allocated resource matrix: \n"; 
+    for (int i = 0; i < P; i++){  
+        for (int j = 0; j < R; j++){  
+            cin >> allot[i][j]; 
+        } 
+    } 
+ 
+    for (int i = 0; i < P; i++){  
+        for (int j = 0; j < R; j++){  
+            need[i][j] = maxm[i][j] - allot[i][j]; 
+        } 
+    } 
+ 
+    vector<int> work = avail; 
+    vector<int> sequence; 
+     
+    cout << "Safe sequences are:\n"; 
+    findSafeSequences(work, sequence); 
+     
+    return 0; 
+}
+
+/*
+Enter number of processes: 4
+Enter number of resource types: 3
+Enter available resources: 3 3 4
+Enter maximum resource matrix: 
+7 5 3
+3 2 2
+9 0 2
+2 2 2
+Enter allocated resource matrix: 
+0 1 0
+2 0 0
+3 0 2
+2 1 1
+Safe sequences are:
+p1-> p3-> p0-> p2-> 
+p1-> p3-> p2-> p0-> 
+p3-> p1-> p0-> p2-> 
+p3-> p1-> p2-> p0-> 
+*/
